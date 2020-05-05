@@ -14,7 +14,45 @@
     },
     {
       "movie": "Captain America First Avenger",
-      "rating": 2.1
+      "rating": 9.2
+    }
+  ]
+},{
+  "_id": {
+    "$oid": "5eb130a03fb8045e18000db1"
+  },
+  "username": "John",
+  "rated": [
+    {
+      "movie": "Thor Dark World",
+      "rating": 8.3
+    },
+    {
+      "movie": "Captain America Winter Soldier",
+      "rating": 7.5
+    },
+    {
+      "movie": "Captain America First Avenger",
+      "rating": 8.6
+    }
+  ]
+},{
+  "_id": {
+    "$oid": "5eb130d23fb8045e18000db2"
+  },
+  "username": "Mark",
+  "rated": [
+    {
+      "movie": "Captain America Winter Soldier",
+      "rating": 7.9
+    },
+    {
+      "movie": "Captain America First Avenger",
+      "rating": 8.1
+    },
+    {
+      "movie": "Thor Dark World",
+      "rating": 8.7
     }
   ]
 }]

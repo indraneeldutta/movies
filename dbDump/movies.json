@@ -3,8 +3,8 @@
     "$oid": "5eb03fb5a1cf42bf0dc23d7b"
   },
   "name": "Captain America First Avenger",
-  "rating": 17.66,
-  "ratedBy": 210,
+  "rating": 8.6,
+  "ratedBy": 3,
   "comments": [
     {
       "username": "Neel",
@@ -21,7 +21,7 @@
   },
   "name": "Captain America Winter Soldier",
   "rating": 8.2,
-  "ratedBy": 346,
+  "ratedBy": 3,
   "comments": [
     {
       "username": "Neel",
@@ -33,6 +33,12 @@
     "$oid": "5eb04ebca1cf42bf0dc23d7d"
   },
   "name": "Thor Dark World",
-  "rating": 7.5,
-  "ratedBy": 289
+  "rating": 7.7,
+  "ratedBy": 3,
+  "comments": [
+    {
+      "username": "Mark",
+      "comment": "Something Something Something"
+    }
+  ]
 }]
