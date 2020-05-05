@@ -1,0 +1,20 @@
+[{
+  "_id": {
+    "$oid": "5eb066be209d72ae86bb5253"
+  },
+  "username": "Neel",
+  "rated": [
+    {
+      "movie": "Thor Dark World",
+      "rating": 7.2
+    },
+    {
+      "movie": "Captain America Winter Soldier",
+      "rating": 9.1
+    },
+    {
+      "movie": "Captain America First Avenger",
+      "rating": 2.1
+    }
+  ]
+}]

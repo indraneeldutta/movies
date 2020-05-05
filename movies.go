@@ -8,11 +8,13 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+// ResponseMovies describes the structure of response for Movies API
 type ResponseMovies struct {
 	Status int      `json:"status"`
 	Body   []*Movie `json:"body"`
 }
 
+// Movie describes the structure of details for movies
 type Movie struct {
 	Name     string    `json:"name"`
 	Rating   float64   `json:"rating"`
@@ -20,37 +22,50 @@ type Movie struct {
 	Comments []Comment `json:"comments"`
 }
 
+// User described the structure of User data
 type User struct {
 	UserName string  `json:"userName"`
 	Rated    []Rated `json:"rated,omitempty"`
 }
 
+// Rated describes the structure of Rated data
 type Rated struct {
 	Movie  string  `json:"movie"`
 	Rating float64 `json:"rating"`
 }
 
+// ResponseUser describes the structure of Response of user data
+type ResponseUser struct {
+	Status int  `json:"status"`
+	Body   User `json:"user"`
+}
+
+// Comment describes the structure of Comment data
 type Comment struct {
 	UserName string `json:"username"`
 	Comment  string `json:"comment"`
 }
 
+// RatingRequest describes the structure of request for AddRating
 type RatingRequest struct {
 	UserName string  `json:"userName"`
 	Movie    string  `json:"movie"`
 	Rating   float64 `json:"rating"`
 }
 
+// ResponseRating describes the structure of Response sent for AddRating
 type ResponseRating struct {
 	Status int    `json:"status"`
 	Body   string `json:"body"`
 }
 
+// RequestComment describes the structure of Request data of AddComment
 type RequestComment struct {
 	Movie   string  `json:"movieName"`
 	Comment Comment `json:"comment"`
 }
 
+// ResponseComment describes the structure of Response sent for AddComment
 type ResponseComment struct {
 	Status int    `json:"status"`
 	Body   string `json:"body"`
@@ -90,17 +105,18 @@ func GetMovies(movieName string) ResponseMovies {
 	return response
 }
 
+// AddRating adds new rating and updates the previous rating accordingly
 func AddRating(req RatingRequest) ResponseRating {
-	var user User
+	userDetails := GetUser(req.UserName)
 
-	collection := client.Database("Movies").Collection("users")
-
-	query := primitive.M{
-		"username": req.UserName,
+	if userDetails.Status != http.StatusOK {
+		return ResponseRating{
+			Status: http.StatusNotFound,
+			Body:   "User not found",
+		}
 	}
-	cur := collection.FindOne(context.TODO(), query)
-	err := cur.Decode(&user)
-	for _, value := range user.Rated {
+
+	for _, value := range userDetails.Body.Rated {
 		if value.Movie == req.Movie {
 			return ResponseRating{
 				Status: http.StatusOK,
@@ -108,26 +124,21 @@ func AddRating(req RatingRequest) ResponseRating {
 			}
 		}
 	}
-	if err != nil {
-		return ResponseRating{
-			Status: http.StatusNotFound,
-			Body:   "User not found",
-		}
-	}
 
 	rating := Rated{
 		Movie:  req.Movie,
 		Rating: req.Rating,
 	}
-	user.Rated = append(user.Rated, rating)
+	userDetails.Body.Rated = append(userDetails.Body.Rated, rating)
 
-	_, err = collection.UpdateOne(
+	collection := client.Database("Movies").Collection("users")
+	_, err := collection.UpdateMany(
 		context.TODO(),
 		primitive.M{
 			"username": req.UserName,
 		},
 		primitive.D{
-			{"$set", primitive.D{{"rated", user.Rated}}},
+			{"$set", primitive.D{{"rated", userDetails.Body.Rated}}},
 		},
 	)
 
@@ -141,10 +152,11 @@ func AddRating(req RatingRequest) ResponseRating {
 	getMovie := GetMovies(req.Movie)
 	movieDetails := getMovie.Body[0]
 
-	newRating := ((movieDetails.Rating*movieDetails.RatedBy)+req.Rating)/movieDetails.RatedBy + 1
+	newRating := ((movieDetails.Rating * movieDetails.RatedBy) + req.Rating) / (movieDetails.RatedBy + 1)
 
 	newRating = math.Round(newRating*100) / 100
 
+	collection = client.Database("Movies").Collection("movies")
 	_, err = collection.UpdateOne(
 		context.TODO(),
 		primitive.M{
@@ -169,6 +181,7 @@ func AddRating(req RatingRequest) ResponseRating {
 	}
 }
 
+// AddComments adds new comment made by the user
 func AddComments(req RequestComment) ResponseComment {
 	getMovie := GetMovies(req.Movie)
 	movieDetails := getMovie.Body[0]
@@ -196,5 +209,30 @@ func AddComments(req RequestComment) ResponseComment {
 	return ResponseComment{
 		Status: http.StatusOK,
 		Body:   "Successfully added comment",
+	}
+}
+
+// GetUser returns the user details with the movies rated by user
+func GetUser(username string) ResponseUser {
+	var user User
+
+	collection := client.Database("Movies").Collection("users")
+
+	query := primitive.M{
+		"username": username,
+	}
+	cur := collection.FindOne(context.TODO(), query)
+	err := cur.Decode(&user)
+
+	if err != nil {
+		return ResponseUser{
+			Status: http.StatusInternalServerError,
+			Body:   user,
+		}
+	}
+
+	return ResponseUser{
+		Status: http.StatusOK,
+		Body:   user,
 	}
 }

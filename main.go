@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	connect = "mongodb+srv://neel:testpass1994@movies-3mimb.mongodb.net/test?retryWrites=true&w=majority"
+	connect = "mongodb+srv://neel:testpass1994@movies-3mimb.mongodb.net/test?retryWrites=true&w=majority" // Change to local mongo setup
 	client  = GetClient()
 )
 
@@ -23,6 +23,7 @@ func main() {
 	router.HandleFunc("/movies/{name}", handleMovies).Methods("GET")
 	router.HandleFunc("/addrating", handleAddRating).Methods("POST")
 	router.HandleFunc("/addcomment", handleAddComments).Methods("POST")
+	router.HandleFunc("/userdetails", handleUserDetails).Methods("POST")
 	log.Fatal(http.ListenAndServe(":8080", router))
 }
 
@@ -88,6 +89,27 @@ func handleAddComments(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := AddComments(requestComment)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.Status)
+	json.NewEncoder(w).Encode(response)
+}
+
+func handleUserDetails(w http.ResponseWriter, r *http.Request) {
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode("Invalid request")
+		return
+	}
+	var user User
+	err = json.Unmarshal(body, &user)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode("Invalid request")
+		return
+	}
+
+	response := GetUser(user.UserName)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(response.Status)
 	json.NewEncoder(w).Encode(response)
