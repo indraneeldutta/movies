@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"math"
 	"net/http"
 
@@ -47,9 +46,14 @@ type ResponseRating struct {
 	Body   string `json:"body"`
 }
 
+type RequestComment struct {
+	Movie   string  `json:"movieName"`
+	Comment Comment `json:"comment"`
+}
+
 type ResponseComment struct {
-	Movie    string    `json:"movie"`
-	Comments []Comment `json:"comments"`
+	Status int    `json:"status"`
+	Body   string `json:"body"`
 }
 
 // GetMovies returns for the movies searched or all movies
@@ -75,8 +79,6 @@ func GetMovies(movieName string) ResponseMovies {
 		if err != nil {
 			return response
 		}
-		responseComment := GetComments(movie.Name)
-		movie.Comments = responseComment.Comments
 		movies = append(movies, &movie)
 	}
 
@@ -167,19 +169,32 @@ func AddRating(req RatingRequest) ResponseRating {
 	}
 }
 
-func GetComments(movieName string) ResponseComment {
-	var responseComment ResponseComment
-	collection := client.Database("Movies").Collection("comments")
-	query := primitive.M{
-		"movie": movieName,
-	}
-	cur := collection.FindOne(context.TODO(), query)
-	err := cur.Decode(&responseComment)
+func AddComments(req RequestComment) ResponseComment {
+	getMovie := GetMovies(req.Movie)
+	movieDetails := getMovie.Body[0]
+
+	movieDetails.Comments = append(movieDetails.Comments, req.Comment)
+
+	collection := client.Database("Movies").Collection("movies")
+	_, err := collection.UpdateOne(
+		context.TODO(),
+		primitive.M{
+			"name": req.Movie,
+		},
+		primitive.D{
+			{"$set", primitive.D{{"comments", movieDetails.Comments}}},
+		},
+	)
 
 	if err != nil {
-		return responseComment
+		return ResponseComment{
+			Status: http.StatusInternalServerError,
+			Body:   "Failed to add comment",
+		}
 	}
 
-	fmt.Println(responseComment)
-	return responseComment
+	return ResponseComment{
+		Status: http.StatusOK,
+		Body:   "Successfully added comment",
+	}
 }

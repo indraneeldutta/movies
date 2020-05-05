@@ -21,7 +21,8 @@ func main() {
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/movies", handleMovies).Methods("GET")
 	router.HandleFunc("/movies/{name}", handleMovies).Methods("GET")
-	router.HandleFunc("/addrating", handleRating).Methods("POST")
+	router.HandleFunc("/addrating", handleAddRating).Methods("POST")
+	router.HandleFunc("/addcomment", handleAddComments).Methods("POST")
 	log.Fatal(http.ListenAndServe(":8080", router))
 }
 
@@ -50,7 +51,7 @@ func handleMovies(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func handleRating(w http.ResponseWriter, r *http.Request) {
+func handleAddRating(w http.ResponseWriter, r *http.Request) {
 	var reqBody RatingRequest
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -66,6 +67,27 @@ func handleRating(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := AddRating(reqBody)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(response.Status)
+	json.NewEncoder(w).Encode(response)
+}
+
+func handleAddComments(w http.ResponseWriter, r *http.Request) {
+	var requestComment RequestComment
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode("Invalid request")
+		return
+	}
+	err = json.Unmarshal(body, &requestComment)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode("Invalid request")
+		return
+	}
+
+	response := AddComments(requestComment)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(response.Status)
 	json.NewEncoder(w).Encode(response)
