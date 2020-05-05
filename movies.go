@@ -150,6 +150,12 @@ func AddRating(req RatingRequest) ResponseRating {
 	}
 
 	getMovie := GetMovies(req.Movie)
+	if getMovie.Status != http.StatusOK {
+		return ResponseRating{
+			Status: http.StatusNotFound,
+			Body:   "Movie not found",
+		}
+	}
 	movieDetails := getMovie.Body[0]
 
 	newRating := ((movieDetails.Rating * movieDetails.RatedBy) + req.Rating) / (movieDetails.RatedBy + 1)
@@ -184,6 +190,12 @@ func AddRating(req RatingRequest) ResponseRating {
 // AddComments adds new comment made by the user
 func AddComments(req RequestComment) ResponseComment {
 	getMovie := GetMovies(req.Movie)
+	if getMovie.Status != http.StatusOK {
+		return ResponseComment{
+			Status: http.StatusNotFound,
+			Body:   "Movie not found",
+		}
+	}
 	movieDetails := getMovie.Body[0]
 
 	movieDetails.Comments = append(movieDetails.Comments, req.Comment)
