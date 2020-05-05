@@ -8,7 +8,7 @@ Below are the REST APIs created for Movies
 5. `/userdetails` - shows the movies rated by the user along with details
 
 ## Setup
-Clone this repo to your GOPATH
+Clone this repo
 
 The program uses MongoDB as its database. The DB Dumps can be found in `dbDump` folder in JSON format. Consists of two collections `movies` and `users` with prepopulated data. Feel free to edit the data before import.
 
